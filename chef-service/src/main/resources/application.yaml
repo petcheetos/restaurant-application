@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: chef-service
+
+server:
+  port: 8083
+
+chef:
+  count: 2 # количество поваров
+  lambda: 0.0001 # # параметр распределения времени обслуживания

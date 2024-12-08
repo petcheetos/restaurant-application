@@ -1,0 +1,13 @@
+services:
+  postgresql:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: restaurant
+      POSTGRES_USER: restaurant
+      POSTGRES_PASSWORD: restaurant
+    volumes:
+      - postgresql:/var/lib/postgresql/data
+volumes:
+  postgresql: { }

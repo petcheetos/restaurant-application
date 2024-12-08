@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/restaurant
+    username: restaurant
+    password: restaurant
+
+server:
+  port: 8081
+
+order:
+  generator:
+    enabled: true
+    number-of-senders: 4
+    interval:
+      min: 2000
+      max: 3000
+queue:
+  service:
+    url: http://localhost:8082/api/queue
+
