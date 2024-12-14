@@ -5,8 +5,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
-import kotlin.math.ln
-import kotlin.random.Random
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.math.exp
 
 class Chef(
     val id: Int,
@@ -18,6 +18,14 @@ class Chef(
 
     @Volatile
     private var isBusy: Boolean = false
+
+    private val totalWorkingTimeMs = AtomicLong(0)
+
+    private var ordersProcessed = 0
+
+    private val baseTime = 1000L
+    private val growthFactor = 0.3
+
     fun isAvailable(): Boolean = !isBusy
 
     fun processOrder(order: Order) {
@@ -29,11 +37,15 @@ class Chef(
         isBusy = true
         coroutineScope.launch {
             try {
-                val processingTime = generateExponentialTime(processingTimeLambda)
-                logger.info { "Chef $id started processing order ${order.id} (processing time: $processingTime ms)" }
+                val currentOrderIndex = ordersProcessed
+                ordersProcessed++
+
+                val processingTime = (baseTime * exp(growthFactor * currentOrderIndex)).toLong()
+
+                logger.info { "Chef $id started processing order ${order.id} (processing time: $processingTime ms, ordersProcessed=$ordersProcessed)" }
 
                 delay(processingTime)
-
+                totalWorkingTimeMs.addAndGet(processingTime)
                 isBusy = false
                 notifyCompletion(order)
             } catch (e: Exception) {
@@ -43,8 +55,5 @@ class Chef(
         }
     }
 
-    private fun generateExponentialTime(lambda: Double): Long {
-        val randomValue = Random.nextDouble()
-        return (-ln(1.0 - randomValue) / lambda).toLong()
-    }
+    fun getTotalWorkingTimeMs(): Long = totalWorkingTimeMs.get()
 }

@@ -16,9 +16,6 @@ class ChefServiceClient {
             .bodyValue(order)
             .retrieve()
             .bodyToMono(Void::class.java)
-            .doOnSuccess {
-                logger.info("Successfully sent order ${order.id} to ChefService")
-            }
             .doOnError { error ->
                 logger.error("Failed to assign order ${order.id} to a chef", error)
             }

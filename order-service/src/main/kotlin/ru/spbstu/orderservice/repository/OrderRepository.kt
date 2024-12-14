@@ -1,6 +1,7 @@
 package ru.spbstu.orderservice.repository
 
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import org.springframework.stereotype.Repository
@@ -20,7 +21,7 @@ class OrderRepository {
                 it[priority] = order.priority
                 it[items] = objectMapper.writeValueAsString(order.items)
                 it[status] = order.status
-                it[createdAt] = java.time.LocalDateTime.now()
+                it[createdAt] = java.time.LocalDateTime.now(java.time.Clock.systemUTC())
             }
         }
     }
@@ -31,5 +32,17 @@ class OrderRepository {
                 it[status] = newStatus
             }
         }
+    }
+
+    fun getCustomerIdByOrderId(orderId: UUID): Long = transaction {
+        OrdersTable.select { OrdersTable.id eq orderId }
+            .map { it[OrdersTable.customerId] }
+            .firstOrNull() ?: throw RuntimeException("Order not found: $orderId")
+    }
+
+    fun getCreatedAtByOrderId(orderId: UUID): java.time.Instant = transaction {
+        OrdersTable.select { OrdersTable.id eq orderId }
+            .map { it[OrdersTable.createdAt].toInstant(java.time.ZoneOffset.UTC) }
+            .firstOrNull() ?: throw RuntimeException("Order not found: $orderId")
     }
 }

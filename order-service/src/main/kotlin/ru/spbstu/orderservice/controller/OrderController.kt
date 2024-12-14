@@ -5,12 +5,14 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import ru.spbstu.orderservice.model.Status
 import ru.spbstu.orderservice.service.OrderService
+import ru.spbstu.orderservice.statistics.StatisticsService
 import java.util.*
 
 @RestController
 @RequestMapping("/api/orders")
 class OrderController(
-    private val orderService: OrderService
+    private val orderService: OrderService,
+    private val statisticsService: StatisticsService
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -19,6 +21,8 @@ class OrderController(
     fun cancelOrder(@PathVariable orderId: UUID) {
         logger.info("Received cancel request for order $orderId")
         try {
+            val customerId = orderService.getCustomerIdByOrderId(orderId)
+            statisticsService.incrementCanceledCount(orderId, customerId)
             orderService.updateWithStatus(orderId, Status.CANCELED)
             logger.info("Order $orderId status updated to CANCELED")
         } catch (e: Exception) {
@@ -40,8 +44,3 @@ class OrderController(
         }
     }
 }
-
-data class CreateOrderRequest(
-    val customerId: Long,
-    val items: List<String>
-)
